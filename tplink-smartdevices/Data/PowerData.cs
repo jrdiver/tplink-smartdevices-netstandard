@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TPLinkSmartDevices.Data
+﻿namespace TPLinkSmartDevices.Data
 {
     /// <summary>
     /// Encapsulates JSON data structure for current energy use as metered by the HS110 Smart Energy Meter.
