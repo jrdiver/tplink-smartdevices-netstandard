@@ -60,7 +60,7 @@ namespace TPLinkSmartDevices.Devices
 
         public static async Task<TPLinkSmartBulb> Create(string hostname, int port = 9999)
         {
-            var b = new TPLinkSmartBulb() { Hostname = hostname, Port = port };
+            TPLinkSmartBulb b = new TPLinkSmartBulb() { Hostname = hostname, Port = port };
             await b.Refresh().ConfigureAwait(false);
             return b;
         }
@@ -81,7 +81,7 @@ namespace TPLinkSmartDevices.Devices
             if (!_poweredOn)
                 lightState = lightState.dft_on_state;
             
-            _hsv = new BulbHSV() { Hue = (int)lightState.hue, Saturation = (int)lightState.saturation, Value = (int)lightState.brightness };
+            _hsv = new() { Hue = (int)lightState.hue, Saturation = (int)lightState.saturation, Value = (int)lightState.brightness };
             _colorTemp = (int)lightState.color_temp;
             _brightness = (int)lightState.brightness;
             
@@ -177,7 +177,7 @@ namespace TPLinkSmartDevices.Devices
         {
             if (presetIndex < 0 || presetIndex > 3) throw new ArgumentOutOfRangeException("preset index needs to be between 0 and 3");
 
-            if (PreferredLightStates.Count == 0) throw new Exception("no light state presets found");
+            if (PreferredLightStates.Count == 0) throw new("no light state presets found");
 
             PreferredLightState preset = PreferredLightStates[presetIndex];
             if (preset.ColorTemperature != 0)
@@ -198,7 +198,7 @@ namespace TPLinkSmartDevices.Devices
             _preferredLightStates = presets.Select(x => new PreferredLightState
             {
                 ColorTemperature = (int)x["color_temp"],
-                HSV = new BulbHSV() { Hue = (int)x["hue"], Saturation = (int)x["saturation"], Value = (int)x["brightness"] }
+                HSV = new() { Hue = (int)x["hue"], Saturation = (int)x["saturation"], Value = (int)x["brightness"] }
             }).ToList();
         }
 
@@ -209,7 +209,7 @@ namespace TPLinkSmartDevices.Devices
 
         public async Task AddCountDownRule(CountDownRule cdr)
         {
-            if (CountDownRules.Any(c => c.Id == cdr.Id)) throw new Exception("countdown rule with specified id already exists");
+            if (CountDownRules.Any(c => c.Id == cdr.Id)) throw new("countdown rule with specified id already exists");
 
             cdr = await this.AddCountDownRule(COUNTDOWN_NAMESPACE, cdr);
             CountDownRules.Add(cdr);
@@ -219,7 +219,7 @@ namespace TPLinkSmartDevices.Devices
         {
             CountDownRule cdr = CountDownRules.Find(c => c.Id == id);
 
-            if (cdr == null) throw new Exception("plug has no countdown rule with specified id");
+            if (cdr == null) throw new("plug has no countdown rule with specified id");
 
             cdr.Enabled = enabled ?? cdr.Enabled;
             cdr.Delay = delay ?? cdr.Delay;
@@ -231,8 +231,8 @@ namespace TPLinkSmartDevices.Devices
 
         public async Task EditCountDownRule(CountDownRule newCdr)
         {
-            if (newCdr.Id == null) throw new Exception("countdown rule id is required");
-            if (CountDownRules.Any(c => c.Id == newCdr.Id)) throw new Exception("countdown rule with specified id already exists");
+            if (newCdr.Id == null) throw new("countdown rule id is required");
+            if (CountDownRules.Any(c => c.Id == newCdr.Id)) throw new("countdown rule with specified id already exists");
 
             CountDownRule cdr = CountDownRules.Find(c => c.Id == newCdr.Id);
             cdr.Enabled = newCdr.Enabled;

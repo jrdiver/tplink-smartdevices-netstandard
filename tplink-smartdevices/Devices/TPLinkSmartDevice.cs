@@ -74,13 +74,13 @@ namespace TPLinkSmartDevices.Devices
         /// </summary>
         protected internal async Task<dynamic> Execute(string system, string command, object argument = null, object value = null)
         {
-            var message = new SmartHomeProtocolMessage(system, command, argument, value);
+            SmartHomeProtocolMessage message = new SmartHomeProtocolMessage(system, command, argument, value);
             return await MessageCache.Request(message, Hostname, Port).ConfigureAwait(false);
         }
 
         protected internal async Task<dynamic> Execute(string system, string command, string json)
         {
-            var message = new SmartHomeProtocolMessage(system, command, json);
+            SmartHomeProtocolMessage message = new SmartHomeProtocolMessage(system, command, json);
             return await MessageCache.Request(message, Hostname, Port);
         }
 
@@ -93,7 +93,7 @@ namespace TPLinkSmartDevices.Devices
         public async Task<DateTime> GetTime()
         {
             dynamic rawTime = await Execute("time", "get_time").ConfigureAwait(false);
-            return new DateTime((int)rawTime.year, (int)rawTime.month, (int)rawTime.mday, (int)rawTime.hour, (int)rawTime.min, (int)rawTime.sec);
+            return new((int)rawTime.year, (int)rawTime.month, (int)rawTime.mday, (int)rawTime.hour, (int)rawTime.min, (int)rawTime.sec);
         }
 
         public async Task GetCloudInfo()
@@ -127,13 +127,13 @@ namespace TPLinkSmartDevices.Devices
                 RemoteAccessEnabled = false;
                 if (e.Message.Contains("20601") || e.Message.Contains("3"))
                 {
-                    throw new Exception("The specified password is incorrect");
+                    throw new("The specified password is incorrect");
                 }
                 else if (e.Message.Contains("20600"))
                 {
-                    throw new Exception("The username wasn't found");
+                    throw new("The username wasn't found");
                 };
-                throw new Exception("Internal error");
+                throw new("Internal error");
             }
         }
 

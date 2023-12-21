@@ -31,7 +31,7 @@ namespace TPLinkSmartDevices.Devices
 
         public static async Task<TPLinkSmartDimmer> Create(string hostname, int port = 9999, DimmerOptions opts = null)
         {
-            var d = new TPLinkSmartDimmer() { Hostname = hostname, Port = port };
+            TPLinkSmartDimmer d = new TPLinkSmartDimmer() { Hostname = hostname, Port = port };
             d._options = opts ?? new DimmerOptions();
             await d.Refresh().ConfigureAwait(false);
             return d;

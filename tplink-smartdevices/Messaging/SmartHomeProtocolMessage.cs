@@ -14,7 +14,7 @@ namespace TPLinkSmartDevices.Messaging
         {
             get
             {
-                var data = Encoding.ASCII.GetBytes(Message ?? JSON);
+                byte[] data = Encoding.ASCII.GetBytes(Message ?? JSON);
                 unchecked
                 {
                     const int p = 16777619;
@@ -43,7 +43,7 @@ namespace TPLinkSmartDevices.Messaging
                 else
                     argObject = Argument;
 
-                var root = new JObject { new JProperty(System, new JObject { new JProperty(Command, argObject) }) };
+                JObject root = new JObject { new JProperty(System, new JObject { new JProperty(Command, argObject) }) };
 
                 return root.ToString(Newtonsoft.Json.Formatting.None);
             }
@@ -73,26 +73,26 @@ namespace TPLinkSmartDevices.Messaging
 
         internal async Task<dynamic> Execute(string hostname, int port)
         {
-            var messageToSend = SmartHomeProtocolEncoder.Encrypt(Message ?? JSON);
+            byte[] messageToSend = SmartHomeProtocolEncoder.Encrypt(Message ?? JSON);
 
-            var client = new TcpClient();
+            TcpClient client = new TcpClient();
             await client.ConnectAsync(hostname, port).ConfigureAwait(false);
 
             byte[] packet = new byte[0];
-            using (var stream = client.GetStream())
+            using (NetworkStream stream = client.GetStream())
             {
                 await stream.WriteAsync(messageToSend, 0, messageToSend.Length).ConfigureAwait(false);
 
                 int targetSize = 0;
-                var buffer = new List<byte>();
+                List<byte> buffer = new List<byte>();
                 while (true)
                 {
-                    var chunk = new byte[1024];
-                    var bytesReceived = await stream.ReadAsync(chunk, 0, chunk.Length).ConfigureAwait(false);
+                    byte[] chunk = new byte[1024];
+                    int bytesReceived = await stream.ReadAsync(chunk, 0, chunk.Length).ConfigureAwait(false);
 
                     if (!buffer.Any())
                     {
-                        var lengthBytes = chunk.Take(4).ToArray();
+                        byte[] lengthBytes = chunk.Take(4).ToArray();
                         if (BitConverter.IsLittleEndian)
                             lengthBytes = lengthBytes.Reverse().ToArray();
                         targetSize = (int)BitConverter.ToUInt32(lengthBytes, 0);
@@ -107,11 +107,11 @@ namespace TPLinkSmartDevices.Messaging
             }
             client.Dispose();
 
-            var decrypted = Encoding.ASCII.GetString(SmartHomeProtocolEncoder.Decrypt(packet)).Trim('\0');
+            string decrypted = Encoding.ASCII.GetString(SmartHomeProtocolEncoder.Decrypt(packet)).Trim('\0');
 
-            var subResult = (dynamic)((JObject)JObject.Parse(decrypted)[System])[Command];
+            dynamic subResult = (dynamic)((JObject)JObject.Parse(decrypted)[System])[Command];
             if (subResult?["err_code"] != null && subResult?.err_code != 0)
-                throw new Exception($"Protocol error {subResult.err_code} ({subResult.err_msg})");
+                throw new($"Protocol error {subResult.err_code} ({subResult.err_msg})");
 
             return subResult;
         }

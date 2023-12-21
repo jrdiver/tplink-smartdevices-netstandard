@@ -27,7 +27,7 @@ namespace TPLinkSmartDevices
 
         public TPLinkDiscovery()
         {
-            DiscoveredDevices = new List<TPLinkSmartDevice>();
+            DiscoveredDevices = new();
         }
 
         public async Task<List<TPLinkSmartDevice>> Discover(int port=9999, int timeout=5000, string target = "255.255.255.255")
@@ -39,7 +39,7 @@ namespace TPLinkSmartDevices
 
             await SendDiscoveryRequestAsync(target).ConfigureAwait(false);
 
-            udp = new UdpClient(PORT_NUMBER)
+            udp = new(PORT_NUMBER)
             {
                 EnableBroadcast = true
             };
@@ -63,10 +63,10 @@ namespace TPLinkSmartDevices
                 if (discoveryComplete) //Prevent ObjectDisposedException/NullReferenceException when the Close() function is called
                     return;
 
-                IPEndPoint ip = new IPEndPoint(IPAddress.Any, PORT_NUMBER);
+                IPEndPoint ip = new(IPAddress.Any, PORT_NUMBER);
                 UdpReceiveResult result = await udp.ReceiveAsync().ConfigureAwait(false);
                 ip = result.RemoteEndPoint;
-                var message = Encoding.ASCII.GetString(Messaging.SmartHomeProtocolEncoder.Decrypt(result.Buffer));
+                string message = Encoding.ASCII.GetString(Messaging.SmartHomeProtocolEncoder.Decrypt(result.Buffer));
 
                 TPLinkSmartDevice device = null;
                 try
@@ -87,9 +87,14 @@ namespace TPLinkSmartDevices
                             device = await TPLinkSmartBulb.Create(ip.Address.ToString()).ConfigureAwait(false);
                     }
                 }
-                catch (RuntimeBinderException)
+                catch (RuntimeBinderException ex)
                 {
                     //discovered wrong device
+                    Console.WriteLine(ex);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex);
                 }
 
                 if (device != null)
@@ -102,17 +107,17 @@ namespace TPLinkSmartDevices
 
         private async Task SendDiscoveryRequestAsync(string target)
         {
-            UdpClient client = new UdpClient(PORT_NUMBER);
-            IPEndPoint ip = new IPEndPoint(IPAddress.Parse(target), PORT_NUMBER);
+            UdpClient client = new(PORT_NUMBER);
+            IPEndPoint ip = new(IPAddress.Parse(target), PORT_NUMBER);
 
-            var discoveryJson = JObject.FromObject(new
+            string discoveryJson = JObject.FromObject(new
             {
                 system = new { get_sysinfo = (object)null },
                 emeter = new { get_realtime = (object)null }
             }).ToString(Newtonsoft.Json.Formatting.None);
-            var discoveryPacket = Messaging.SmartHomeProtocolEncoder.Encrypt(discoveryJson).ToArray();
+            byte[] discoveryPacket = Messaging.SmartHomeProtocolEncoder.Encrypt(discoveryJson).ToArray();
 
-            var bytes = discoveryPacket.Skip(4).ToArray();
+            byte[] bytes = discoveryPacket.Skip(4).ToArray();
             client.EnableBroadcast = true;
             await client.SendAsync(bytes, bytes.Length, ip).ConfigureAwait(false);
             client.Close();
@@ -121,7 +126,7 @@ namespace TPLinkSmartDevices
 
         private void OnDeviceFound(TPLinkSmartDevice device)
         {
-            DeviceFound?.Invoke(this, new DeviceFoundEventArgs(device));
+            DeviceFound?.Invoke(this, new(device));
         }
 
         /// <summary>
@@ -133,7 +138,7 @@ namespace TPLinkSmartDevices
 
             if (scan == null || !scan.ToString().Contains(ssid))
             {
-                throw new Exception("Couldn't find network!");
+                throw new("Couldn't find network!");
             }
 
             JArray networks = JArray.Parse(Convert.ToString(scan.ap_list));
@@ -149,10 +154,10 @@ namespace TPLinkSmartDevices
 
             if (result == null)
             {
-                throw new Exception("Couldn't connect to network. Check password");
+                throw new("Couldn't connect to network. Check password");
             }
             else if (result["err_code"] != null && result.err_code != 0)
-                throw new Exception($"Protocol error {result.err_code} ({result.err_msg})");
+                throw new($"Protocol error {result.err_code} ({result.err_msg})");
         }
     }
 }

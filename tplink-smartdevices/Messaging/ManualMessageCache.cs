@@ -6,7 +6,7 @@ namespace TPLinkSmartDevices.Messaging
 {
     public class ManualMessageCache : IMessageCache
     {
-        private List<MessageCacheItem> _cache = new List<MessageCacheItem>();
+        private List<MessageCacheItem> _cache = new();
 
         public void Flush()
         {
@@ -15,12 +15,12 @@ namespace TPLinkSmartDevices.Messaging
 
         public override async Task<dynamic> Request(SmartHomeProtocolMessage message, string hostname, int port = 9999)
         {
-            var cachedMessage = _cache.FirstOrDefault(c => c.Matches(message, hostname, port));
+            MessageCacheItem cachedMessage = _cache.FirstOrDefault(c => c.Matches(message, hostname, port));
 
             if (cachedMessage != null)
                 return cachedMessage;
 
-            var result = await message.Execute(hostname, port).ConfigureAwait(false);
+            dynamic result = await message.Execute(hostname, port).ConfigureAwait(false);
             _cache.Add(new MessageCacheItem(result, hostname, port));
             return result;
         }

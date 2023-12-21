@@ -9,7 +9,7 @@ namespace TPLinkSmartDevices.Messaging
     {
         public int TimeGateResetSeconds { get; set; } = 10;
 
-        private List<MessageCacheItem> _cache = new List<MessageCacheItem>();
+        private List<MessageCacheItem> _cache = new();
 
         public TimeGatedMessageCache(int resetTimeSeconds = 10)
         {
@@ -18,7 +18,7 @@ namespace TPLinkSmartDevices.Messaging
 
         public override async Task<dynamic> Request(SmartHomeProtocolMessage message, string hostname, int port)
         {
-            var cachedMessage = _cache.FirstOrDefault(c => c.Matches(message, hostname, port));
+            MessageCacheItem cachedMessage = _cache.FirstOrDefault(c => c.Matches(message, hostname, port));
 
             if (cachedMessage != null)
             {
@@ -28,7 +28,7 @@ namespace TPLinkSmartDevices.Messaging
                     return cachedMessage.MessageResult;
             }
 
-            var result = await message.Execute(hostname, port).ConfigureAwait(false);
+            dynamic result = await message.Execute(hostname, port).ConfigureAwait(false);
             _cache.Add(new MessageCacheItem(result, hostname, port));
             return result;
         }

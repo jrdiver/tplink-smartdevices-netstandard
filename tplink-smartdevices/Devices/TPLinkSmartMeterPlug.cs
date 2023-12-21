@@ -27,7 +27,7 @@ namespace TPLinkSmartDevices.Devices
 
         public static new async Task<TPLinkSmartMeterPlug> Create(string hostname, int port = 9999)
         {
-            var p = new TPLinkSmartMeterPlug() { Hostname = hostname, Port = port };
+            TPLinkSmartMeterPlug p = new TPLinkSmartMeterPlug() { Hostname = hostname, Port = port };
             await p.Refresh().ConfigureAwait(false);
             return p;
         }
@@ -61,10 +61,10 @@ namespace TPLinkSmartDevices.Devices
                     new JProperty("month", month),
                     new JProperty("year", year)
                 }, null).ConfigureAwait(false);
-            var stats = new Dictionary<DateTime, float>();
+            Dictionary<DateTime, float> stats = new Dictionary<DateTime, float>();
             foreach (dynamic day_stat in result.day_list)
             {
-                stats.Add(new DateTime((int)day_stat.year, (int)day_stat.month, (int)day_stat.day), (float)(day_stat.energy ?? (day_stat.energy_wh / WATTS_IN_KILOWATT)));
+                stats.Add(new((int)day_stat.year, (int)day_stat.month, (int)day_stat.day), (float)(day_stat.energy ?? (day_stat.energy_wh / WATTS_IN_KILOWATT)));
             }
             return stats;
         }
@@ -79,7 +79,7 @@ namespace TPLinkSmartDevices.Devices
             if (year > DateTime.Now.Year || year < 2010) throw new ArgumentOutOfRangeException($"Can't get stats for {year}. Invalid year!");
 
             dynamic result = await Execute("emeter", "get_monthstat", "year", year).ConfigureAwait(false);
-            var stats = new Dictionary<int, float>();
+            Dictionary<int, float> stats = new Dictionary<int, float>();
             foreach (dynamic month_stat in result.month_list)
             {
                 stats.Add((int)month_stat.month, (float)(month_stat.energy ?? (month_stat.energy_wh / WATTS_IN_KILOWATT)));

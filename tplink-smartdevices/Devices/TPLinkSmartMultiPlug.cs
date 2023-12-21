@@ -34,7 +34,7 @@ namespace TPLinkSmartDevices.Devices
 
         public static async Task<TPLinkSmartMultiPlug> Create(string hostname, int port = 9999)
         {
-            var p = new TPLinkSmartMultiPlug() { Hostname = hostname, Port = port };
+            TPLinkSmartMultiPlug p = new TPLinkSmartMultiPlug() { Hostname = hostname, Port = port };
             await p.Refresh().ConfigureAwait(false);
             return p;
         }
@@ -49,7 +49,7 @@ namespace TPLinkSmartDevices.Devices
             JObject info = JObject.Parse(Convert.ToString(sysInfo));
             bool hasChildren = info["children"] != null;
 
-            if (!hasChildren) throw new Exception("This plug does not have multiple outlets. use TPLinkSmartPlug instead!");
+            if (!hasChildren) throw new("This plug does not have multiple outlets. use TPLinkSmartPlug instead!");
             
             OutletCount = (int)sysInfo.child_num;
             Outlets = JsonConvert.DeserializeObject<List<Outlet>>(Convert.ToString(sysInfo.children)).ToArray();
@@ -83,7 +83,8 @@ namespace TPLinkSmartDevices.Devices
             //toggle specific outlet
             else
             {
-                JObject root = new JObject { 
+                JObject root = new()
+                { 
                     new JProperty("context", new JObject { new JProperty("child_ids", GetPlugID(outletId)) }),
                     new JProperty("system", new JObject { 
                         new JProperty("set_relay_state", 

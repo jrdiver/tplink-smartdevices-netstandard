@@ -42,7 +42,7 @@ namespace TPLinkSmartDevices.Devices
 
         public static async Task<TPLinkSmartPlug> Create(string hostname, int port = 9999)
         {
-            var p = new TPLinkSmartPlug() { Hostname = hostname, Port = port };
+            TPLinkSmartPlug p = new TPLinkSmartPlug() { Hostname = hostname, Port = port };
             await p.Refresh().ConfigureAwait(false);
             return p;
         }
@@ -57,7 +57,7 @@ namespace TPLinkSmartDevices.Devices
             JObject info = JObject.Parse(Convert.ToString(sysInfo));
             bool hasChildren = info["children"] != null;
 
-            if (hasChildren) throw new Exception("this plug has multiple outlets. use TPLinkSmartMultiPlug instead!");
+            if (hasChildren) throw new("this plug has multiple outlets. use TPLinkSmartMultiPlug instead!");
 
             OutletPowered = (int)sysInfo.relay_state == 1;
             Features = ((string)sysInfo.feature).Split(':');
@@ -111,7 +111,7 @@ namespace TPLinkSmartDevices.Devices
 
         public async Task AddCountDownRule(CountDownRule cdr)
         {
-            if (CountDownRules.Any(c => c.Id == cdr.Id)) throw new Exception("countdown rule with specified id already exists");
+            if (CountDownRules.Any(c => c.Id == cdr.Id)) throw new("countdown rule with specified id already exists");
 
             cdr = await this.AddCountDownRule(COUNTDOWN_NAMESPACE, cdr);
             CountDownRules.Add(cdr);
@@ -121,7 +121,7 @@ namespace TPLinkSmartDevices.Devices
         {
             CountDownRule cdr = CountDownRules.Find(c => c.Id == id);
 
-            if (cdr == null) throw new Exception("plug has no countdown rule with specified id");
+            if (cdr == null) throw new("plug has no countdown rule with specified id");
 
             cdr.Enabled = enabled ?? cdr.Enabled;
             cdr.Delay = delay ?? cdr.Delay;
@@ -133,8 +133,8 @@ namespace TPLinkSmartDevices.Devices
 
         public async Task EditCountDownRule(CountDownRule newCdr)
         {
-            if (newCdr.Id == null) throw new Exception("countdown rule id is required");
-            if (!CountDownRules.Any(c => c.Id == newCdr.Id)) throw new Exception("plug has no countdown rule with specified id");
+            if (newCdr.Id == null) throw new("countdown rule id is required");
+            if (!CountDownRules.Any(c => c.Id == newCdr.Id)) throw new("plug has no countdown rule with specified id");
 
             CountDownRule cdr = CountDownRules.Find(c => c.Id == newCdr.Id);
             cdr.Enabled = newCdr.Enabled;
